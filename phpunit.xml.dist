@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.3/phpunit.xsd"
+         colors="true"
+         executionOrder="random"
+         failOnWarning="true"
+         failOnRisky="true"
+         failOnEmptyTestSuite="true"
+         cacheDirectory=".phpunit.cache"
+         beStrictAboutChangesToGlobalState="true"
+         beStrictAboutOutputDuringTests="true">
+    <testsuites>
+        <testsuite name="Unit">
+            <directory suffix="Test.php">test</directory>
+        </testsuite>
+    </testsuites>
+    <php>
+        <env name="APP_ENV" value="testing"/>
+        <env name="SWOOLE_HOOK_FLAGS" value="2147483647"/>
+        <const name="BASE_PATH" value="/opt/www"/>
+    </php>
+    <coverage processUncoveredFiles="true">
+        <include>
+<!--            <directory suffix=".php">app</directory>-->
+            <directory suffix=".php">src</directory>
+        </include>
+        <exclude>
+            <directory>vendor</directory>
+            <directory>test</directory>
+            <directory>storage</directory>
+            <directory>runtime</directory>
+        </exclude>
+        <report>
+            <html outputDirectory="build/coverage" lowUpperBound="50" highLowerBound="90"/>
+            <clover outputFile="build/logs/clover.xml"/>
+            <text outputFile="php://stdout"/>
+        </report>
+    </coverage>
+</phpunit>

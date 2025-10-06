@@ -1,0 +1,72 @@
+services:
+  api:
+    container_name: tecnofit-api
+    image: tecnofit-saque
+    build:
+      context: .
+    volumes:
+      - ./:/opt/www            # monte a raiz do projeto (onde estão src/, app/, composer.json)
+      - ./docker/entrypoint.sh:/entrypoint.sh
+    entrypoint: ["/entrypoint.sh"]   # << sem args
+    ports:
+      - 9501:9501
+    environment:
+      - APP_ENV=dev
+      - REDIS_HOST=redis
+      - REDIS_AUTH=""        # sem senha no dev
+      - REDIS_DB="0"
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  otel-collector:
+    image: otel/opentelemetry-collector:0.106.0
+    command: [ "--config=/etc/otelcol/config.yaml" ]
+    volumes:
+      - ./otel-collector.yaml:/etc/otelcol/config.yaml:ro
+    ports:
+      - "4318:4318"  # HTTP
+      - "8888:8888"  # métricas do collector
+    depends_on:
+      - jaeger
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.57
+    ports:
+      - "16686:16686" # UI
+      - "4317:4317"   # OTLP gRPC input do Jaeger
+      - "14250:14250" # gRPC
+      - "14268:14268" # HTTP legacy
+
+
+  mysql:
+    image: mysql:8.4
+    container_name: tecnofit-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: tecnofit
+    ports:
+      - "3307:3306"
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: tecnofit-mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+  redis:
+    image: redis:7-alpine
+    container_name: tecnofit-redis
+    ports:
+      - "6379:6379"
+    command: [ "redis-server", "--appendonly", "no" ]
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 3s
+      timeout: 2s
+      retries: 20
+
+networks:
+  default:
+    name: hyperf-skeleton

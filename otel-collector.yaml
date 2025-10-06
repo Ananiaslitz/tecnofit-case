@@ -1,0 +1,28 @@
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318   # <— aceite OTLP/HTTP de outros containers
+      grpc:
+        endpoint: 0.0.0.0:4317   # <— aceite OTLP/gRPC de outros containers
+
+processors:
+  batch:
+
+exporters:
+  # Exporta para o Jaeger all-in-one via OTLP gRPC
+  otlp/jaeger:
+    endpoint: jaeger:4317
+    tls:
+      insecure: true
+
+  # Útil pra ver no log do collector que os spans chegaram
+  logging:
+    verbosity: normal
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp/jaeger, logging]
